@@ -6,7 +6,7 @@ int main (int argc, char** argv) {
   int p;           // Total number of processes
   int a = 0.0;     // Left endpoint
   int b = 1.0;     // Right endpoint
-  int n = 1024;    // Number of trapezoids
+  int n = 1024000000;    // Number of trapezoids
   float h;         // Base length
   float local_a;   // My left endpoint
   float local_b;   // My right endpoint
@@ -22,7 +22,7 @@ int main (int argc, char** argv) {
 
   // This function will calculate the local integral
   float trap(float local_a, float local_b, int local_n,
-      float h);
+    float h);
 
   MPI_Init(&argc, &argv);
 
@@ -47,19 +47,20 @@ int main (int argc, char** argv) {
   /* BEGIN SUM */
   // The root process (0) will receive the results from all
   // the other processess
-  if(my_rank ==  0) {
-    total = integral;
-    for (source = 1; source < p; source++) {
-      MPI_Recv(&integral, 1, MPI_FLOAT, source, tag, MPI_COMM_WORLD,
-          &status);
+  // if(my_rank ==  0) {
+  //   total = integral;
+  //   for (source = 1; source < p; source++) {
+  //     MPI_Recv(&integral, 1, MPI_FLOAT, source, tag, MPI_COMM_WORLD, &status);
 
-      total = total + integral;
-    }
-  } else {
-    // Other processes just send their result to root
-    MPI_Send(&integral, 1, MPI_FLOAT, dest, tag, MPI_COMM_WORLD);
-  }
+  //     total = total + integral;
+  //   }
+  // } else {
+  //   // Other processes just send their result to root
+  //   MPI_Send(&integral, 1, MPI_FLOAT, dest, tag, MPI_COMM_WORLD);
+  // }
   /* END SUM */
+
+  MPI_Reduce(&integral, &total, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (my_rank == 0)
     printf("With n = %d trapezoids, estimate is %f\n", n, total);
